@@ -7,7 +7,7 @@ import { useAuth } from '@/auth/AuthContext';
 import { Screen } from '@/components/Screen';
 import { formatSEK } from '@/lib/money';
 import type { AccountStackScreenProps } from '@/navigation/types';
-import { Colors } from '@/theme/colors';
+import { CardSurface, Colors, DangerColors } from '@/theme/colors';
 import type { CompanyOverviewEntry } from '@/types/contracts';
 
 export function CompanySwitcherScreen({ navigation }: AccountStackScreenProps<'CompanySwitcher'>) {
@@ -50,6 +50,9 @@ export function CompanySwitcherScreen({ navigation }: AccountStackScreenProps<'C
             style={styles.card}
             onPress={() => void openCompany(item.tenantId)}
             disabled={switchingTenantId !== null}
+            accessibilityRole="button"
+            accessibilityLabel={`Byt till ${item.tenantName}`}
+            accessibilityState={{ disabled: switchingTenantId !== null }}
           >
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{item.tenantName.charAt(0).toUpperCase()}</Text>
@@ -76,13 +79,13 @@ export function CompanySwitcherScreen({ navigation }: AccountStackScreenProps<'C
 
 const styles = StyleSheet.create({
   title: { fontSize: 22, fontWeight: '700', color: Colors.ink[900], marginBottom: 16 },
-  errorText: { color: '#b91c1c', backgroundColor: '#fee2e2', borderRadius: 8, padding: 10, fontSize: 13, marginBottom: 12 },
+  errorText: { color: DangerColors.text, backgroundColor: DangerColors.background, borderRadius: 8, padding: 10, fontSize: 13, marginBottom: 12 },
   empty: { color: Colors.mist[400], marginBottom: 12 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    backgroundColor: '#ffffff',
+    backgroundColor: CardSurface,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.ink[50],

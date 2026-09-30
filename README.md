@@ -1,56 +1,30 @@
-# Welcome to your Expo app 👋
+# faktureringssystem-native
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+En [Expo](https://expo.dev)/React Native-app (SDK 57) för kundportalen i `faktureringssystem-be` — samma fakturor, betalningar och företagsbyte som webbportalen, plus native-specifika funktioner: Face ID/Touch ID-inloggning, haptisk feedback, delning av fakturor via native Share Sheet, och lokala push-notiser vid statusändringar.
 
-## Get started
+## Arkitektur
 
-1. Install dependencies
+- **Navigation**: [React Navigation](https://reactnavigation.org) (native-stack + bottom-tabs), inte Expo Router. Navigatorer ligger i [`src/navigation/`](src/navigation/), skärmar i [`src/screens/`](src/screens/). Se [AGENTS.md](AGENTS.md) för resonemanget bakom valet.
+- **State/data**: [TanStack Query](https://tanstack.com/query) mot en tunn `fetch`-baserad API-klient i [`src/api/`](src/api/) — single-flight token-refresh på 401, se [`src/api/client.ts`](src/api/client.ts).
+- **Auth**: access-token i minnet, refresh-token krypterat i Keychain/Keystore via `expo-secure-store` ([`src/auth/tokenStore.ts`](src/auth/tokenStore.ts)), med ett Face ID/Touch ID-gate ovanpå ([`src/auth/biometrics.ts`](src/auth/biometrics.ts)).
+- **Typer**: [`src/types/contracts.ts`](src/types/contracts.ts) är en handskriven spegling av de DTO:er appen faktiskt använder från backendens delade `contracts`-paket — ingen path-mapping mellan repona, så projektet fungerar fristående.
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Komma igång
 
 ```bash
-npm run reset-project
+npm install
+cp .env.example .env   # sätt EXPO_PUBLIC_API_URL mot din körande faktureringssystem-be
+npm run ios             # eller npm run android / npm run web
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Appen förväntar sig en körande `faktureringssystem-be` (`docker compose up -d`) på adressen i `.env`.
 
-### Other setup steps
+## Kommandon
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+npx tsc --noEmit    # typecheck
+npm run lint         # expo lint
+npm test             # jest
+```
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Kör typecheck, lint och tester innan en ändring anses klar.

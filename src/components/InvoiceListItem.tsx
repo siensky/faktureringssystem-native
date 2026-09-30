@@ -15,7 +15,12 @@ export function InvoiceListItem({
   onPress: () => void;
 }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+      accessibilityRole="button"
+      accessibilityLabel={`Faktura ${invoice.invoiceNumber ?? 'utan nummer'}, förfaller ${toDateOnly(invoice.dateDue)}`}
+    >
       <View style={styles.main}>
         <Text style={styles.invoiceNumber}>{invoice.invoiceNumber ?? '—'}</Text>
         <StatusBadge value={invoice.status} />

@@ -13,6 +13,13 @@ import {
   setRefreshToken,
 } from '@/auth/tokenStore';
 
+// EXPO_PUBLIC_-variabler bakas in i bundeln vid build. Faller den bort i
+// en produktionsbuild ska appen inte tyst peka mot localhost — det ska
+// synas direkt, inte upptäckas i produktion.
+if (!process.env.EXPO_PUBLIC_API_URL && !__DEV__) {
+  throw new Error('EXPO_PUBLIC_API_URL måste sättas i en produktionsbuild.');
+}
+
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8080';
 
 export class ApiError extends Error {

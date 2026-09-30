@@ -58,7 +58,6 @@ export interface PortalInvoiceDetailDto extends PortalInvoiceSummaryDto {
 /** GET /portal/invoices/:id/pdf — tidsbegränsad, signerad S3-URL. */
 export interface PortalInvoicePdfDto {
   url: string;
-  expiresAt: string;
 }
 
 export interface PortalAccountSummaryDto {

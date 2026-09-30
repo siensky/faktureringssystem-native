@@ -66,3 +66,20 @@ export const STATUS_COLORS: Record<string, { background: string; text: string }>
 };
 
 export const DEFAULT_STATUS_COLOR = { background: Colors.mist[100], text: Colors.mist[700] };
+
+// Delade ytfärger som annars hade blivit upprepade hex-literaler i varje
+// screen — kortbakgrunder och felmeddelanden ser likadana ut överallt.
+export const CardSurface = '#ffffff';
+export const DangerColors = { background: '#fee2e2', text: '#b91c1c' };
+
+/** Svensk visningstext för InvoiceStatus — används av StatusBadge och
+ *  notiserna om statusändring, så de aldrig kan hamna i otakt. */
+export const INVOICE_STATUS_LABELS: Record<string, string> = {
+  draft: 'utkast',
+  sent: 'skickad',
+  paid: 'betald',
+  overdue: 'förfallen',
+  credited: 'krediterad',
+  superseded: 'ersatt',
+  settled: 'reglerad',
+};

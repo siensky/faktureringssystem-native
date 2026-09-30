@@ -8,7 +8,10 @@
     "scheme": "faktureringssystemnative",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Logga in snabbt och säkert med Face ID."
+      }
     },
     "android": {
       "adaptiveIcon": {

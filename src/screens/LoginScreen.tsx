@@ -12,7 +12,8 @@ import {
 
 import { ApiError } from '@/api/client';
 import { useAuth } from '@/auth/AuthContext';
-import { Colors } from '@/theme/colors';
+import { errorFeedback, successFeedback } from '@/lib/haptics';
+import { CardSurface, Colors, DangerColors } from '@/theme/colors';
 
 export function LoginScreen() {
   const { login } = useAuth();
@@ -26,7 +27,9 @@ export function LoginScreen() {
     setIsSubmitting(true);
     try {
       await login(email.trim(), password);
+      successFeedback();
     } catch (err) {
+      errorFeedback();
       setError(err instanceof ApiError ? err.message : 'Kunde inte logga in.');
     } finally {
       setIsSubmitting(false);
@@ -50,6 +53,7 @@ export function LoginScreen() {
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
+          accessibilityLabel="E-post"
         />
         <TextInput
           style={styles.input}
@@ -59,15 +63,19 @@ export function LoginScreen() {
           autoComplete="password"
           value={password}
           onChangeText={setPassword}
+          accessibilityLabel="Lösenord"
         />
 
         <TouchableOpacity
           style={[styles.button, isSubmitting && styles.buttonDisabled]}
           onPress={() => void handleSubmit()}
           disabled={isSubmitting || !email || !password}
+          accessibilityRole="button"
+          accessibilityLabel="Logga in"
+          accessibilityState={{ disabled: isSubmitting || !email || !password }}
         >
           {isSubmitting ? (
-            <ActivityIndicator color="#ffffff" />
+            <ActivityIndicator color={CardSurface} />
           ) : (
             <Text style={styles.buttonText}>Logga in</Text>
           )}
@@ -82,7 +90,7 @@ const styles = StyleSheet.create({
   form: { gap: 12 },
   title: { fontSize: 26, fontWeight: '700', color: Colors.ink[900], textAlign: 'center' },
   subtitle: { fontSize: 14, color: Colors.mist[500], textAlign: 'center', marginBottom: 12 },
-  error: { color: '#b91c1c', backgroundColor: '#fee2e2', borderRadius: 8, padding: 10, fontSize: 13 },
+  error: { color: DangerColors.text, backgroundColor: DangerColors.background, borderRadius: 8, padding: 10, fontSize: 13 },
   input: {
     borderWidth: 1,
     borderColor: Colors.ink[100],
@@ -91,7 +99,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 15,
     color: Colors.ink[900],
-    backgroundColor: '#ffffff',
+    backgroundColor: CardSurface,
   },
   button: {
     backgroundColor: Colors.ink[900],
@@ -101,5 +109,5 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: '#ffffff', fontWeight: '600', fontSize: 15 },
+  buttonText: { color: CardSurface, fontWeight: '600', fontSize: 15 },
 });
