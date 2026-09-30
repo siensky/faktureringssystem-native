@@ -1,30 +1,33 @@
 # faktureringssystem-native
 
-En [Expo](https://expo.dev)/React Native-app (SDK 57) för kundportalen i `faktureringssystem-be` — samma fakturor, betalningar och företagsbyte som webbportalen, plus native-specifika funktioner: Face ID/Touch ID-inloggning, haptisk feedback, delning av fakturor via native Share Sheet, och lokala push-notiser vid statusändringar.
+Mobilklient till mitt fakturasystem, byggd i React Native/Expo. Samma backend och samma data som webbportalen, men gjord för telefon på riktigt istället för att bara krympa webben — Face ID-inloggning, haptisk feedback, native delning av fakturor som PDF, och lokala notiser när en faktura byter status.
 
-## Arkitektur
+## Vad man kan göra
 
-- **Navigation**: [React Navigation](https://reactnavigation.org) (native-stack + bottom-tabs), inte Expo Router. Navigatorer ligger i [`src/navigation/`](src/navigation/), skärmar i [`src/screens/`](src/screens/). Se [AGENTS.md](AGENTS.md) för resonemanget bakom valet.
-- **State/data**: [TanStack Query](https://tanstack.com/query) mot en tunn `fetch`-baserad API-klient i [`src/api/`](src/api/) — single-flight token-refresh på 401, se [`src/api/client.ts`](src/api/client.ts).
-- **Auth**: access-token i minnet, refresh-token krypterat i Keychain/Keystore via `expo-secure-store` ([`src/auth/tokenStore.ts`](src/auth/tokenStore.ts)), med ett Face ID/Touch ID-gate ovanpå ([`src/auth/biometrics.ts`](src/auth/biometrics.ts)).
-- **Typer**: [`src/types/contracts.ts`](src/types/contracts.ts) är en handskriven spegling av de DTO:er appen faktiskt använder från backendens delade `contracts`-paket — ingen path-mapping mellan repona, så projektet fungerar fristående.
+Logga in, se sina fakturor, öppna eller dela en faktura som PDF, betala via Stripe Checkout, och byta mellan bolag om man är kopplad till fler än ett. Inget konstigt, men allt går via en riktig backend (`faktureringssystem-be`), inte mockad data.
 
-## Komma igång
+## Stack
+
+Expo (SDK 57), React Navigation, TanStack Query, TypeScript. Valde React Navigation istället för Expo Router för att få en uttalad mappstruktur (`navigation/`, `screens/`) snarare än att routingen styrs av filsystemet — mer att skriva för hand, men lättare att följa när appen växer.
+
+## Köra appen
 
 ```bash
 npm install
-cp .env.example .env   # sätt EXPO_PUBLIC_API_URL mot din körande faktureringssystem-be
-npm run ios             # eller npm run android / npm run web
+cp .env.example .env    # peka EXPO_PUBLIC_API_URL mot din egen faktureringssystem-be
+npm run ios             # eller: npm run android / npm run web
 ```
 
-Appen förväntar sig en körande `faktureringssystem-be` (`docker compose up -d`) på adressen i `.env`.
+Kräver en körande instans av backenden (`docker compose up -d` i det repot).
 
-## Kommandon
+## Testa
 
 ```bash
-npx tsc --noEmit    # typecheck
-npm run lint         # expo lint
-npm test             # jest
+npm test              # jest — 31 tester
+npx tsc --noEmit       # typecheck
+npm run lint           # eslint
 ```
 
-Kör typecheck, lint och tester innan en ändring anses klar.
+Testerna ligger där buggar faktiskt gömmer sig: pengaformattering, token-refresh (inklusive vad som händer om flera anrop får 401 samtidigt), och diff-logiken bakom notiserna. Jag har medvetet inte skrivit komponenttester för skärmarna — de är tunna wrappers runt native-API:er (kamera, Face ID, delningsmenyn) som är enklare att verifiera genom att köra appen än genom snapshots som ändå bara speglar koden.
+
+Face ID, haptik, delning och notiser är native-only och går inte att testa i webbläsaren — kör `npm run ios` eller `npm run android` för att se dem på riktigt.
