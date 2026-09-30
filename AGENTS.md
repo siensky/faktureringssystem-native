@@ -25,9 +25,10 @@ Run lint and typecheck before declaring any task done.
 
 ## Navigation & Routing
 
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
-- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
-- Docs: https://docs.expo.dev/router/introduction.md
+- Use **React Navigation** for all navigation (deliberate deviation from the create-expo-app default of Expo Router — chosen for an explicit, folder-based navigator structure instead of file-based routing). Navigators live in `src/navigation/` (`RootNavigator.tsx` swaps an auth stack vs. the app stack based on `AuthContext`, `AppTabs.tsx` is the bottom-tab navigator). Screens live in `src/screens/`. `src/app/` does not exist in this project — do not recreate it or reach for `expo-router` imports.
+- Root component is `src/App.tsx`, registered from the top-level `index.js` (not `expo-router/entry`).
+- `expo-router` is still present in `node_modules` — it ships bundled inside `@expo/cli` in SDK 57 and can't be uninstalled, but nothing in this app imports it. As of SDK 56, `expo-router`'s CLI tooling refuses to bundle an app that imports `@react-navigation/native` unless `EXPO_ROUTER_DISABLE_RN_NAVIGATION_CHECK=1` is set — this is already baked into the `start`/`android`/`ios`/`web` npm scripts, so use those instead of calling `expo start` directly.
+- Docs: https://reactnavigation.org/docs/getting-started
 
 ## Building with EAS
 
