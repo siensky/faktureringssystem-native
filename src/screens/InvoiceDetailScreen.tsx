@@ -8,9 +8,11 @@ import * as invoicesApi from '@/api/invoices';
 import { Screen } from '@/components/Screen';
 import { StatusBadge } from '@/components/StatusBadge';
 import { toDateOnly } from '@/lib/date';
+import { errorFeedback, successFeedback } from '@/lib/haptics';
 import { formatSEK } from '@/lib/money';
+import { shareInvoicePdf } from '@/lib/shareInvoicePdf';
 import type { InvoicesStackScreenProps } from '@/navigation/types';
-import { Colors } from '@/theme/colors';
+import { CardSurface, Colors, DangerColors } from '@/theme/colors';
 
 const PAYABLE_STATUSES = new Set(['sent', 'overdue']);
 
@@ -19,6 +21,8 @@ export function InvoiceDetailScreen({ route }: InvoicesStackScreenProps<'Invoice
   const queryClient = useQueryClient();
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [isOpeningPdf, setIsOpeningPdf] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
+  const [isSharingPdf, setIsSharingPdf] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
   const [isStartingPayment, setIsStartingPayment] = useState(false);
 
@@ -55,9 +59,27 @@ export function InvoiceDetailScreen({ route }: InvoicesStackScreenProps<'Invoice
       await queryClient.invalidateQueries({ queryKey: ['invoices', invoiceId] });
       await queryClient.invalidateQueries({ queryKey: ['account-summary'] });
     } catch (err) {
+      errorFeedback();
       setPayError(err instanceof Error ? err.message : 'Kunde inte starta betalningen.');
     } finally {
       setIsStartingPayment(false);
+    }
+  }
+
+  async function sharePdf() {
+    setShareError(null);
+    setIsSharingPdf(true);
+    try {
+      const { url } = await invoicesApi.getInvoicePdfUrl(invoiceId);
+      await shareInvoicePdf(url, invoice?.invoiceNumber ?? null);
+      successFeedback();
+    } catch (err) {
+      errorFeedback();
+      setShareError(
+        err instanceof ApiError && err.status === 404 ? 'PDF:en är inte klar än.' : 'Kunde inte dela PDF:en.',
+      );
+    } finally {
+      setIsSharingPdf(false);
     }
   }
 
@@ -80,17 +102,38 @@ export function InvoiceDetailScreen({ route }: InvoicesStackScreenProps<'Invoice
         </View>
 
         {pdfError && <Text style={styles.errorText}>{pdfError}</Text>}
+        {shareError && <Text style={styles.errorText}>{shareError}</Text>}
         {payError && <Text style={styles.errorText}>{payError}</Text>}
 
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.secondaryButton} onPress={() => void openPdf()} disabled={isOpeningPdf}>
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={() => void openPdf()}
+            disabled={isOpeningPdf}
+            accessibilityRole="button"
+            accessibilityLabel="Öppna PDF"
+            accessibilityState={{ disabled: isOpeningPdf }}
+          >
             <Text style={styles.secondaryButtonText}>{isOpeningPdf ? 'Öppnar…' : 'Öppna PDF'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={() => void sharePdf()}
+            disabled={isSharingPdf}
+            accessibilityRole="button"
+            accessibilityLabel="Dela PDF"
+            accessibilityState={{ disabled: isSharingPdf }}
+          >
+            <Text style={styles.secondaryButtonText}>{isSharingPdf ? 'Delar…' : 'Dela PDF'}</Text>
           </TouchableOpacity>
           {isPayable && (
             <TouchableOpacity
               style={styles.primaryButton}
               onPress={() => void startPayment()}
               disabled={isStartingPayment}
+              accessibilityRole="button"
+              accessibilityLabel="Betala nu"
+              accessibilityState={{ disabled: isStartingPayment }}
             >
               <Text style={styles.primaryButtonText}>{isStartingPayment ? 'Startar…' : 'Betala nu'}</Text>
             </TouchableOpacity>
@@ -157,16 +200,16 @@ const styles = StyleSheet.create({
   loading: { marginTop: 32 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   title: { fontSize: 20, fontWeight: '700', color: Colors.ink[900] },
-  errorText: { color: '#b91c1c', backgroundColor: '#fee2e2', borderRadius: 8, padding: 10, fontSize: 13, marginBottom: 8 },
+  errorText: { color: DangerColors.text, backgroundColor: DangerColors.background, borderRadius: 8, padding: 10, fontSize: 13, marginBottom: 8 },
   actions: { flexDirection: 'row', gap: 10, marginBottom: 16 },
   secondaryButton: { borderWidth: 1, borderColor: Colors.ink[100], borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10 },
   secondaryButtonText: { color: Colors.ink[700], fontWeight: '600', fontSize: 14 },
   primaryButton: { backgroundColor: Colors.ink[900], borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10 },
-  primaryButtonText: { color: '#ffffff', fontWeight: '600', fontSize: 14 },
+  primaryButtonText: { color: CardSurface, fontWeight: '600', fontSize: 14 },
   infoCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#ffffff',
+    backgroundColor: CardSurface,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.ink[50],
@@ -176,7 +219,7 @@ const styles = StyleSheet.create({
   infoLabel: { color: Colors.mist[500], fontSize: 12, marginBottom: 2 },
   infoValue: { color: Colors.ink[900], fontWeight: '600', fontSize: 14 },
   linesCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: CardSurface,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.ink[50],
@@ -189,7 +232,7 @@ const styles = StyleSheet.create({
   lineDescription: { color: Colors.ink[900], fontSize: 14, marginBottom: 2 },
   lineMeta: { color: Colors.mist[500], fontSize: 12 },
   lineAmount: { color: Colors.ink[900], fontWeight: '600', fontSize: 14 },
-  summaryCard: { backgroundColor: '#ffffff', borderRadius: 12, borderWidth: 1, borderColor: Colors.ink[50], padding: 16, marginBottom: 32 },
+  summaryCard: { backgroundColor: CardSurface, borderRadius: 12, borderWidth: 1, borderColor: Colors.ink[50], padding: 16, marginBottom: 32 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
   summaryDivider: { borderTopWidth: 1, borderTopColor: Colors.ink[50], marginTop: 4, paddingTop: 8 },
   summaryLabel: { color: Colors.mist[500], fontSize: 13 },

@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { formatSEK } from '@/lib/money';
-import { Colors } from '@/theme/colors';
+import { CardSurface, Colors } from '@/theme/colors';
 import type { PortalAccountSummaryDto } from '@/types/contracts';
 
 export function AccountSummaryCard({ summary }: { summary: PortalAccountSummaryDto }) {
@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: CardSurface,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.ink[50],

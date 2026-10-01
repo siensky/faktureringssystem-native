@@ -1,56 +1,52 @@
-# Welcome to your Expo app 👋
+# faktureringssystem-native
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Mobilklient till mitt fakturasystem, byggd i React Native/Expo. Samma backend och samma data som webbportalen, men gjord för telefon på riktigt istället för att bara krympa webben — Face ID-inloggning, haptisk feedback, native delning av fakturor som PDF, och lokala notiser när en faktura byter status.
 
-## Get started
+<p>
+  <img src="docs/screenshots/login.png" width="200" alt="Inloggning" />
+  <img src="docs/screenshots/invoices.png" width="200" alt="Fakturalista" />
+  <img src="docs/screenshots/invoice-detail.png" width="200" alt="Fakturadetalj" />
+  <img src="docs/screenshots/company-switcher.png" width="200" alt="Byt företag" />
+</p>
 
-1. Install dependencies
+## Vad man kan göra
 
-   ```bash
-   npm install
-   ```
+Logga in, se sina fakturor, öppna eller dela en faktura som PDF, betala via Stripe Checkout, och byta mellan bolag om man är kopplad till fler än ett.
 
-2. Start the app
+## Stack
 
-   ```bash
-   npx expo start
-   ```
+Expo (SDK 57), React Navigation, TanStack Query, TypeScript. Valde React Navigation istället för Expo Router för att få en uttalad mappstruktur (`navigation/`, `screens/`) snarare än att routingen styrs av filsystemet — mer att skriva för hand, men lättare att följa när appen växer.
 
-In the output, you'll find options to open the app in a
+## Testa den utan backend
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Appen pratar normalt med en riktig backend (`faktureringssystem-be`), men man behöver inte starta den bara för att kolla på appen:
 
 ```bash
-npm run reset-project
+npm install
+npm run demo
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Det startar appen i webbläsaren med en inbyggd fejk-API — valfri inloggning, två påhittade bolag med olika fakturastatusar, allt man ser på skärmdumparna ovan. Inget nätverksanrop lämnar datorn. PDF-öppning och betalning är avsiktligt inte simulerade (det finns ingen riktig fil eller betalning att simulera), så de visar samma felmeddelande som appen redan har för "inte tillgänglig än".
 
-### Other setup steps
+Samma flagga (`EXPO_PUBLIC_USE_MOCKS=true`) funkar för `npm run ios`/`android` också, se `src/api/mockData.ts` för fixturdatan.
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Köra mot en riktig backend
 
-## Learn more
+```bash
+cp .env.example .env    # peka EXPO_PUBLIC_API_URL mot din egen faktureringssystem-be
+npm run ios             # eller: npm run android / npm run web
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Kräver en körande instans av backenden (`docker compose up -d` i det repot).
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Testa
 
-## Join the community
+```bash
+npm test              # jest — 34 tester
+npx tsc --noEmit       # typecheck
+npm run lint           # eslint
+```
 
-Join our community of developers creating universal apps.
+Testerna ligger där buggar faktiskt gömmer sig: pengaformattering, token-refresh (inklusive vad som händer om flera anrop får 401 samtidigt), fejk-API:ets routing, och diff-logiken bakom notiserna. Jag har medvetet inte skrivit komponenttester för skärmarna — de är tunna wrappers runt native-API:er (kamera, Face ID, delningsmenyn) som är enklare att verifiera genom att köra appen än genom snapshots som ändå bara speglar koden.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Face ID, haptik, delning och notiser är native-only och går inte att testa i webbläsaren — kör `npm run ios` eller `npm run android` för att se dem på riktigt.

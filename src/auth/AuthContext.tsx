@@ -7,8 +7,10 @@ import { createContext, type ReactNode, useContext, useEffect, useRef, useState 
 
 import * as authApi from '@/api/auth';
 import * as companiesApi from '@/api/companies';
+import { getBiometricEnabled } from '@/lib/preferences';
 import type { CurrentUserDto } from '@/types/contracts';
 
+import { authenticateWithBiometrics, isBiometricLoginAvailable } from './biometrics';
 import {
   clearTokens,
   getRefreshToken,
@@ -53,6 +55,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setStatus('unauthenticated');
         return;
       }
+
+      // Face ID/Touch ID är en grind ovanpå den redan sparade
+      // refresh-token, inte en ersättning för den — bara på om
+      // användaren slagit på det OCH enheten faktiskt stödjer det.
+      const biometricEnabled = await getBiometricEnabled();
+      if (biometricEnabled && (await isBiometricLoginAvailable())) {
+        const approved = await authenticateWithBiometrics();
+        if (!approved) {
+          setStatus('unauthenticated');
+          return;
+        }
+      }
+
       try {
         const pair = await authApi.refresh(existingRefresh);
         setAccessToken(pair.accessToken);
