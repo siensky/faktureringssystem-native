@@ -1,52 +1,52 @@
 # faktureringssystem-native
 
-Mobilklient till mitt fakturasystem, byggd i React Native/Expo. Samma backend och samma data som webbportalen, men gjord för telefon på riktigt istället för att bara krympa webben — Face ID-inloggning, haptisk feedback, native delning av fakturor som PDF, och lokala notiser när en faktura byter status.
+Mobile client for my invoicing system, built in React Native/Expo. Same backend and same data as the web portal, but made for a phone for real instead of just shrinking the web version — Face ID login, haptic feedback, native sharing of invoices as PDF, and local notifications when an invoice changes status.
 
 <p>
-  <img src="docs/screenshots/login.png" width="200" alt="Inloggning" />
-  <img src="docs/screenshots/invoices.png" width="200" alt="Fakturalista" />
-  <img src="docs/screenshots/invoice-detail.png" width="200" alt="Fakturadetalj" />
-  <img src="docs/screenshots/company-switcher.png" width="200" alt="Byt företag" />
+  <img src="docs/screenshots/login.png" width="200" alt="Login" />
+  <img src="docs/screenshots/invoices.png" width="200" alt="Invoice list" />
+  <img src="docs/screenshots/invoice-detail.png" width="200" alt="Invoice detail" />
+  <img src="docs/screenshots/company-switcher.png" width="200" alt="Switch company" />
 </p>
 
-## Vad man kan göra
+## What you can do
 
-Logga in, se sina fakturor, öppna eller dela en faktura som PDF, betala via Stripe Checkout, och byta mellan bolag om man är kopplad till fler än ett.
+Log in, view your invoices, open or share an invoice as a PDF, pay via Stripe Checkout, and switch between companies if you're linked to more than one.
 
 ## Stack
 
-Expo (SDK 57), React Navigation, TanStack Query, TypeScript. Valde React Navigation istället för Expo Router för att få en uttalad mappstruktur (`navigation/`, `screens/`) snarare än att routingen styrs av filsystemet — mer att skriva för hand, men lättare att följa när appen växer.
+Expo (SDK 57), React Navigation, TanStack Query, TypeScript. Chose React Navigation over Expo Router to get an explicit folder structure (`navigation/`, `screens/`) rather than having routing driven by the file system — more to write by hand, but easier to follow as the app grows.
 
-## Testa den utan backend
+## Try it without a backend
 
-Appen pratar normalt med en riktig backend (`faktureringssystem-be`), men man behöver inte starta den bara för att kolla på appen:
+The app normally talks to a real backend (`faktureringssystem-be`), but you don't need to start it just to look at the app:
 
 ```bash
 npm install
 npm run demo
 ```
 
-Det startar appen i webbläsaren med en inbyggd fejk-API — valfri inloggning, två påhittade bolag med olika fakturastatusar, allt man ser på skärmdumparna ovan. Inget nätverksanrop lämnar datorn. PDF-öppning och betalning är avsiktligt inte simulerade (det finns ingen riktig fil eller betalning att simulera), så de visar samma felmeddelande som appen redan har för "inte tillgänglig än".
+This starts the app in the browser with a built-in fake API — any login works, two made-up companies with different invoice statuses, everything you see in the screenshots above. No network call leaves the computer. PDF opening and payment are deliberately not simulated (there's no real file or payment to simulate), so they show the same "not available yet" error message the app already has.
 
-Samma flagga (`EXPO_PUBLIC_USE_MOCKS=true`) funkar för `npm run ios`/`android` också, se `src/api/mockData.ts` för fixturdatan.
+The same flag (`EXPO_PUBLIC_USE_MOCKS=true`) also works for `npm run ios`/`android`, see `src/api/mockData.ts` for the fixture data.
 
-## Köra mot en riktig backend
+## Running against a real backend
 
 ```bash
-cp .env.example .env    # peka EXPO_PUBLIC_API_URL mot din egen faktureringssystem-be
-npm run ios             # eller: npm run android / npm run web
+cp .env.example .env    # point EXPO_PUBLIC_API_URL at your own faktureringssystem-be
+npm run ios             # or: npm run android / npm run web
 ```
 
-Kräver en körande instans av backenden (`docker compose up -d` i det repot).
+Requires a running instance of the backend (`docker compose up -d` in that repo).
 
-## Testa
+## Testing
 
 ```bash
-npm test              # jest — 34 tester
+npm test              # jest — 34 tests
 npx tsc --noEmit       # typecheck
 npm run lint           # eslint
 ```
 
-Testerna ligger där buggar faktiskt gömmer sig: pengaformattering, token-refresh (inklusive vad som händer om flera anrop får 401 samtidigt), fejk-API:ets routing, och diff-logiken bakom notiserna. Jag har medvetet inte skrivit komponenttester för skärmarna — de är tunna wrappers runt native-API:er (kamera, Face ID, delningsmenyn) som är enklare att verifiera genom att köra appen än genom snapshots som ändå bara speglar koden.
+The tests live where bugs actually hide: money formatting, token refresh (including what happens if several requests get a 401 at the same time), the fake API's routing, and the diff logic behind the notifications. I've deliberately not written component tests for the screens — they're thin wrappers around native APIs (camera, Face ID, the share sheet) that are easier to verify by running the app than through snapshots that would just mirror the code anyway.
 
-Face ID, haptik, delning och notiser är native-only och går inte att testa i webbläsaren — kör `npm run ios` eller `npm run android` för att se dem på riktigt.
+Face ID, haptics, sharing, and notifications are native-only and can't be tested in the browser — run `npm run ios` or `npm run android` to see them for real.
