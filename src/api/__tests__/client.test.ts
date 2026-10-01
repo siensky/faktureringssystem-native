@@ -78,3 +78,39 @@ describe('apiRequest', () => {
     expect(result).toBeUndefined();
   });
 });
+
+describe('apiRequest (demoläge, EXPO_PUBLIC_USE_MOCKS)', () => {
+  beforeEach(() => {
+    process.env.EXPO_PUBLIC_USE_MOCKS = 'true';
+  });
+
+  afterEach(() => {
+    delete process.env.EXPO_PUBLIC_USE_MOCKS;
+  });
+
+  it('loggar in med valfria uppgifter utan nätverksanrop', async () => {
+    const result = await apiRequest<{ accessToken: string }>('/auth/login', {
+      method: 'POST',
+      body: { email: 'vem@som.helst', password: 'fel-lösenord-funkar-också' },
+    });
+
+    expect(result.accessToken).toBeTruthy();
+  });
+
+  it('returnerar fakturor för det aktiva bolaget och byter när man byter bolag', async () => {
+    await apiRequest('/auth/companies/switch', { method: 'POST', body: { tenantId: 1 } });
+
+    const before = await apiRequest<{ id: number }[]>('/portal/invoices');
+    expect(before.map((invoice) => invoice.id)).toEqual([101, 102, 103]);
+
+    await apiRequest('/auth/companies/switch', { method: 'POST', body: { tenantId: 2 } });
+
+    const after = await apiRequest<{ id: number }[]>('/portal/invoices');
+    expect(after.map((invoice) => invoice.id)).toEqual([201]);
+  });
+
+  it('nekar PDF- och betalningsanrop med samma ApiError-typ som resten av appen redan hanterar', async () => {
+    await expect(apiRequest('/portal/invoices/101/pdf')).rejects.toThrow(ApiError);
+    await expect(apiRequest('/portal/invoices/101/pay', { method: 'POST', body: {} })).rejects.toThrow(ApiError);
+  });
+});

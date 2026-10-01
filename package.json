@@ -51,6 +51,7 @@
     "android": "EXPO_ROUTER_DISABLE_RN_NAVIGATION_CHECK=1 expo start --android",
     "ios": "EXPO_ROUTER_DISABLE_RN_NAVIGATION_CHECK=1 expo start --ios",
     "web": "EXPO_ROUTER_DISABLE_RN_NAVIGATION_CHECK=1 expo start --web",
+    "demo": "EXPO_PUBLIC_USE_MOCKS=true EXPO_ROUTER_DISABLE_RN_NAVIGATION_CHECK=1 expo start --web",
     "lint": "expo lint",
     "test": "jest"
   },
